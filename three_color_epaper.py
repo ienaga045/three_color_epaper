@@ -26,7 +26,7 @@ def main():
     layout = [
         [sg.Text('電子ペーパーの画像サイズ', size=(21,1)), sg.Input('212', size=(3,1),key = 'epaper_width'), sg.Text('x', size=(1,1)),
          sg.Input('104', size=(3,1), key = 'epaper_height'), sg.Button('Set'), sg.T('(最大255)')],
-        [sg.InputText('PNGファイルを選択', enable_events=True,), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNG ファイル', '*.png'),)), sg.Button('OK'), sg.Button('Resize')],
+        [sg.InputText('PNGファイルを選択', enable_events=True,), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNG ファイル', '*.png'),)), sg.Button('OK'), sg.Button('Resize'), sg.Button('Rotation')],
 
         #読み込み画像用
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_orig', change_submits=True, drag_submits=True,  # mouse click events 
@@ -36,7 +36,7 @@ def main():
          sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],[sg.Button('Calc')],
         [sg.T(' '*120),sg.Exit()]
     ]
-    window = sg.Window('3色電子ペーパーの画像データ生成用のﾊﾟｲﾁｮﾝｱﾌﾟﾘ', layout, location=(400, 200),finalize = True)
+    window = sg.Window('3色電子ペーパー（Black/Red/White）の画像データ生成用のﾊﾟｲﾁｮﾝｱﾌﾟﾘ', layout, location=(400, 200),finalize = True)
 
     graph_orig = window['graph_orig']
     graph_mix = window['graph_mix']
@@ -59,9 +59,9 @@ def main():
     dragging = False
     start_point = end_point = None
     drag_figures = None
+    file_name = None
     while True:
         event, values = window.read()
-        file_name = values['Open_file']
         height = int(values['epaper_height'])
         width = int(values['epaper_width'])
 
@@ -86,7 +86,9 @@ def main():
             if width != 255:
                 fill_space_v()
         elif event == 'OK':
+            file_name = values['Open_file']
             print(file_name)
+            graph_orig.erase() #一旦初期化
             graph_orig.DrawImage(filename = file_name, location = (0,0))   #読み込み画像描画
             if height != 255: 
                 fill_space_h()
@@ -94,30 +96,42 @@ def main():
                 fill_space_v()
             drag_figures = None
             dragging = False
-
-
         elif event == 'Resize':
-            img = Image.open(file_name)
-            resized_width = round(img.width * height / img.height)
-            img = img.resize((resized_width, height))
-            print(str(resized_width) + ',' + str(height))
-            img.save('resized.png')
-            graph_orig.erase() #一旦初期化
-            graph_orig.DrawImage(filename = './resized.png', location = (0,0))   #読み込み画像描画
-            if height != 255: 
-                fill_space_h()
-            if width != 255:
-                fill_space_v()
-            drag_figures = None
-            dragging = False
+            if file_name is not None:
+                img = Image.open(file_name)
+                resized_width = round(img.width * height / img.height)
+                img = img.resize((resized_width, height))
+                file_name = 'resized.png'
+                img.save(file_name)
+                graph_orig.erase() #一旦初期化
+                graph_orig.DrawImage(filename = './resized.png', location = (0,0))   #読み込み画像描画
+                if height != 255: 
+                    fill_space_h()
+                if width != 255:
+                    fill_space_v()
+                drag_figures = None
+                dragging = False
+        elif event == 'Rotation':
+            if file_name is not None:
+                img = Image.open(file_name)
+                img = img.rotate(90, expand=True)
+                file_name = 'rotated.png'
+                img.save(file_name)
+                graph_orig.erase() #一旦初期化
+                graph_orig.DrawImage(filename = './rotated.png', location = (0,0))   #読み込み画像描画
+                if height != 255: 
+                    fill_space_h()
+                if width != 255:
+                    fill_space_v()
+                drag_figures = None
+                dragging = False
+
         elif event == 'Calc':
             black_thresh = int(values['black_thresh_slider'])
             red_thresh = int(values['red_thresh_slider'])
             filename=r'trim.png'
             save_element_as_file(window['graph_orig'], filename, height , width)    #graph_origのスクショを保存
-            #img = np.array(Image.open('trim.png'))  #スクショ部読み出し、np配列化
             img = Image.open('trim.png')
-
             #RGB抽出
             img_red, img_green, img_blue = img.split()
             #黒抽出
@@ -137,16 +151,11 @@ def main():
             img_black = img_black.convert('RGB')
             fill_color = (255,0,0)
             img_black.paste(Image.new('RGB', (width ,height), fill_color), mask = mask)
-
             img_black.save('black_and_red.png')
-            #img_red_color.save('red_color')
-            #Image.fromarray(np.uint8(img_red_bin)).save('red.png')
-
             #読み込み画像描画
             graph_black.DrawImage(filename = './black.png', location = (0,0))
             graph_red.DrawImage(filename = './red.png', location = (0,0))
             graph_mix.DrawImage(filename = './black_and_red.png', location = (0,0))
-
 
         #グラフエリアマウスドラッグ時処理
         if event == 'graph_orig': 
@@ -165,11 +174,7 @@ def main():
                 for fig in drag_figures:
                     graph_orig.move_figure(fig, delta_x, delta_y)
                     graph_orig.update()
-        
     #終了時処理
-
-
-
     window.close()  
 
 main()
