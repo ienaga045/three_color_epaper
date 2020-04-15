@@ -122,24 +122,30 @@ def main():
             img_red, img_green, img_blue = img.split()
             #黒抽出
             img_red_bin = img_red.point(lambda x: 0 if x < black_thresh else 1, mode='1')
-            img_blue_bin = img_blue.point(lambda x: 0 if x < red_thresh else 1, mode='1')
+            #img_blue_bin = img_blue.point(lambda x: 0 if x < red_thresh else 1, mode='1')
             img_green_bin = img_green.point(lambda x: 0 if x < red_thresh else 1, mode='1')
 
-
-            img_black_bin = img_red_bin
-            img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_bin)
-            img_red_color = img_red_bin
-
-            img_red_bin = ImageChops.invert(img_red_bin)
-            
-            
-            
+            img_black_bin = img_red_bin #黒の抽出
+            img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_bin)    #赤の抽出
+            mask = img_red_bin
+            img_red_bin = ImageChops.invert(img_red_bin)    
             img_black_bin.save('black.png')
             img_red_bin.save('red.png')
+
+            #黒の画像にマスクをかけて、赤を塗る
+            img_black = Image.open('black.png')
+            img_black = img_black.convert('RGB')
+            fill_color = (255,0,0)
+            img_black.paste(Image.new('RGB', (width ,height), fill_color), mask = mask)
+
+            img_black.save('black_and_red.png')
             #img_red_color.save('red_color')
             #Image.fromarray(np.uint8(img_red_bin)).save('red.png')
-            graph_black.DrawImage(filename = './black.png', location = (0,0))   #読み込み画像描画
-            graph_red.DrawImage(filename = './red.png', location = (0,0)) 
+
+            #読み込み画像描画
+            graph_black.DrawImage(filename = './black.png', location = (0,0))
+            graph_red.DrawImage(filename = './red.png', location = (0,0))
+            graph_mix.DrawImage(filename = './black_and_red.png', location = (0,0))
 
 
         #グラフエリアマウスドラッグ時処理
