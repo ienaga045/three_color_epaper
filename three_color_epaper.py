@@ -136,11 +136,12 @@ def main():
             img_red, img_green, img_blue = img.split()
             #黒抽出
             img_red_bin = img_red.point(lambda x: 0 if x < black_thresh else 1, mode='1')
-            #img_blue_bin = img_blue.point(lambda x: 0 if x < red_thresh else 1, mode='1')
+            img_blue_bin = img_blue.point(lambda x: 0 if x < red_thresh else 1, mode='1')
             img_green_bin = img_green.point(lambda x: 0 if x < red_thresh else 1, mode='1')
 
             img_black_bin = img_red_bin #黒の抽出
-            img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_bin)    #赤の抽出
+            img_green_and_blue = ImageChops.logical_and(img_green_bin, img_blue_bin)
+            img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_and_blue)    #赤の抽出
             mask = img_red_bin
             img_red_bin = ImageChops.invert(img_red_bin)    
             img_black_bin.save('black.png')
