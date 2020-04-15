@@ -1,11 +1,24 @@
 import PySimpleGUI as sg
 import numpy as np
-from PIL import Image, ImageTk
+from PIL import Image, ImageGrab, ImageChops
 
 MAX_WIDTH = 255
 MAX_HEIGHT = 255
 picture_size_x = 255
 picture_size_y = 255
+
+
+def save_element_as_file(element, filename, height, width):
+    """
+    Saves any element as an image file.  Element needs to have an underlyiong Widget available (almost if not all of them do)
+    :param element: The element to save
+    :param filename: The filename to save to. The extension of the filename determines the format (jpg, png, gif, ?)
+    """
+    widget = element.Widget
+    box = (widget.winfo_rootx(), widget.winfo_rooty(), widget.winfo_rootx() + widget.winfo_width() - (257 - width), widget.winfo_rooty() + widget.winfo_height() - (257 - height))
+    grab = ImageGrab.grab(bbox=box)
+    grab.save(filename)
+
 
 def main():
     sg.theme('Default1')
@@ -20,7 +33,7 @@ def main():
          background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_mix', background_color='white')],
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_black', background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_red', background_color='white')],
         [sg.Text('B/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'black_thresh_slider'),
-         sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],
+         sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],[sg.Button('Calc')],
         [sg.T(' '*120),sg.Exit()]
     ]
     window = sg.Window('3色電子ペーパーの画像データ生成用のﾊﾟｲﾁｮﾝｱﾌﾟﾘ', layout, location=(400, 200),finalize = True)
@@ -81,6 +94,8 @@ def main():
                 fill_space_v()
             drag_figures = None
             dragging = False
+
+
         elif event == 'Resize':
             img = Image.open(file_name)
             resized_width = round(img.width * height / img.height)
@@ -95,6 +110,38 @@ def main():
                 fill_space_v()
             drag_figures = None
             dragging = False
+        elif event == 'Calc':
+            black_thresh = int(values['black_thresh_slider'])
+            red_thresh = int(values['red_thresh_slider'])
+            filename=r'trim.png'
+            save_element_as_file(window['graph_orig'], filename, height , width)    #graph_origのスクショを保存
+            #img = np.array(Image.open('trim.png'))  #スクショ部読み出し、np配列化
+            img = Image.open('trim.png')
+
+            #RGB抽出
+            img_red, img_green, img_blue = img.split()
+            #黒抽出
+            img_red_bin = img_red.point(lambda x: 0 if x < black_thresh else 1, mode='1')
+            img_blue_bin = img_blue.point(lambda x: 0 if x < red_thresh else 1, mode='1')
+            img_green_bin = img_green.point(lambda x: 0 if x < red_thresh else 1, mode='1')
+
+
+            img_black_bin = img_red_bin
+            img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_bin)
+            img_red_color = img_red_bin
+
+            img_red_bin = ImageChops.invert(img_red_bin)
+            
+            
+            
+            img_black_bin.save('black.png')
+            img_red_bin.save('red.png')
+            #img_red_color.save('red_color')
+            #Image.fromarray(np.uint8(img_red_bin)).save('red.png')
+            graph_black.DrawImage(filename = './black.png', location = (0,0))   #読み込み画像描画
+            graph_red.DrawImage(filename = './red.png', location = (0,0)) 
+
+
         #グラフエリアマウスドラッグ時処理
         if event == 'graph_orig': 
             x, y = values['graph_orig']
