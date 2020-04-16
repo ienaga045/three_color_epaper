@@ -5,6 +5,27 @@ from PIL import Image, ImageGrab, ImageChops
 MAX_WIDTH = 255
 MAX_HEIGHT = 255
 
+#bit列をhexに変換する関数
+def array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7):
+    hex_data = 0x00
+    if bit0 == True:
+        hex_data = hex_data | 0x01
+    if bit1 == True:
+        hex_data = hex_data | 0x02
+    if bit2 == True:
+        hex_data = hex_data | 0x04
+    if bit3 == True:
+        hex_data = hex_data | 0x08
+    if bit4 == True:
+        hex_data = hex_data | 0x10
+    if bit5 == True:
+        hex_data = hex_data | 0x20
+    if bit6 == True:
+        hex_data = hex_data | 0x40
+    if bit7 == True:
+        hex_data = hex_data | 0x80
+    return hex_data
+
 def save_element_as_file(element, filename, height, width):
     """
     Saves any element as an image file.  Element needs to have an underlyiong Widget available (almost if not all of them do)
@@ -153,13 +174,13 @@ def main():
             text_file = open(text_file_name, 'w') # 書き込みモードで開く
             #text_file.write(brack_array) # 引数の文字列をファイルに書き込む
             #text_file.close() # ファイルを閉じる
-            black_array_inv = black_array * 0
-            for i in range (height):
-                for j in range (width):
-                    black_array_inv[height-1-i][width-1-j] = black_array[i][j] 
-                    text_file.write(str(i) + ',' + str(j) + ',' + str(height-1-i) + ',' + str(width-1-j) +  '\n')
-            im_bin = black_array_inv* 255
-            Image.fromarray(np.uint8(im_bin)).save('numpy_bin.png')
+            #for j in range (width):
+            #    for i in range (0, height, 8):
+            #        hex_data = array2hex(black_array[i][j], black_array[i+1][j], black_array[i+2][j], black_array[i+3][j], black_array[i+4][j], black_array[i+5][j], black_array[i+6][j], black_array[i+7][j])
+            #        text_file.write(hex(hex_data) + ',' )
+            #    text_file.write('\n')
+            hex_data = array2hex(True,False,True,False,False,False,False,False)
+            text_file.write(hex(hex_data) + ',' )
             text_file.close() # ファイルを閉じる
         #グラフエリアマウスドラッグ時処理
         if event == 'graph_orig': 
