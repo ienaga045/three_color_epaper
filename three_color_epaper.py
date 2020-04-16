@@ -27,7 +27,7 @@ def main():
          background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_mix', background_color='white')],
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_black', background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_red', background_color='white')],
         [sg.Text('B/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'black_thresh_slider'),
-         sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],[sg.Button('Calc')],
+         sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],[sg.Button('Calc'),sg.Button('Save')],
         [sg.T(' '*120),sg.Exit()]
     ]
     window = sg.Window('3色電子ペーパー（Black/Red/White）の画像データ生成用のﾊﾟｲﾁｮﾝｱﾌﾟﾘ', layout, location=(400, 200),finalize = True)
@@ -53,6 +53,7 @@ def main():
     start_point = end_point = None
     drag_figures = None
     file_name = None
+    calc_done = False
     while True:
         event, values = window.read()
         height = int(values['epaper_height'])
@@ -118,8 +119,7 @@ def main():
                     fill_space_v()
                 drag_figures = None
                 dragging = False
-
-        elif event == 'Calc':
+        elif event == 'Calc':   #3値化処理実施
             black_thresh = int(values['black_thresh_slider'])   #スライダーの閾値読み出し
             red_thresh = int(values['red_thresh_slider'])
             filename=r'trim.png'
@@ -147,7 +147,20 @@ def main():
             graph_black.DrawImage(filename = './black.png', location = (0,0))
             graph_red.DrawImage(filename = './red.png', location = (0,0))
             graph_mix.DrawImage(filename = './black_and_red.png', location = (0,0))
-
+        elif event == 'Save' :
+            text_file_name = 'hex_datas.txt'
+            black_array = np.array(Image.open('black.png'))
+            text_file = open(text_file_name, 'w') # 書き込みモードで開く
+            #text_file.write(brack_array) # 引数の文字列をファイルに書き込む
+            #text_file.close() # ファイルを閉じる
+            black_array_inv = black_array * 0
+            for i in range (height):
+                for j in range (width):
+                    black_array_inv[height-1-i][width-1-j] = black_array[i][j] 
+                    text_file.write(str(i) + ',' + str(j) + ',' + str(height-1-i) + ',' + str(width-1-j) +  '\n')
+            im_bin = black_array_inv* 255
+            Image.fromarray(np.uint8(im_bin)).save('numpy_bin.png')
+            text_file.close() # ファイルを閉じる
         #グラフエリアマウスドラッグ時処理
         if event == 'graph_orig': 
             x, y = values['graph_orig']
