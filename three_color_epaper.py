@@ -7,22 +7,23 @@ MAX_HEIGHT = 255
 
 #bit列をhexに変換する関数
 def array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7):
+    pol = False
     hex_data = 0x00
-    if bit0 == True:
+    if bit0 == pol:
         hex_data = hex_data | 0x01
-    if bit1 == True:
+    if bit1 == pol:
         hex_data = hex_data | 0x02
-    if bit2 == True:
+    if bit2 == pol:
         hex_data = hex_data | 0x04
-    if bit3 == True:
+    if bit3 == pol:
         hex_data = hex_data | 0x08
-    if bit4 == True:
+    if bit4 == pol:
         hex_data = hex_data | 0x10
-    if bit5 == True:
+    if bit5 == pol:
         hex_data = hex_data | 0x20
-    if bit6 == True:
+    if bit6 == pol:
         hex_data = hex_data | 0x40
-    if bit7 == True:
+    if bit7 == pol:
         hex_data = hex_data | 0x80
     return hex_data
 
@@ -74,7 +75,6 @@ def main():
     start_point = end_point = None
     drag_figures = None
     file_name = None
-    calc_done = False
     while True:
         event, values = window.read()
         height = int(values['epaper_height'])
@@ -102,7 +102,6 @@ def main():
                 fill_space_v()
         elif event == 'OK': #ファイルオープン処理
             file_name = values['Open_file']
-            print(file_name)
             graph_orig.erase() #一旦初期化
             graph_orig.DrawImage(filename = file_name, location = (0,0))   #読み込み画像描画
             if height != 255: #最大値以外はグレーアウト部を生成
@@ -168,22 +167,193 @@ def main():
             graph_black.DrawImage(filename = './black.png', location = (0,0))
             graph_red.DrawImage(filename = './red.png', location = (0,0))
             graph_mix.DrawImage(filename = './black_and_red.png', location = (0,0))
-        elif event == 'Save' :
-            text_file_name = 'hex_datas.txt'
+        elif event == 'Save' :      #hexファイル保存処理
+            text_file_name = 'hex_datas.txt'    #'0xXX'の形式でテキストとして保存。C言語とかで楽に使える。
             black_array = np.array(Image.open('black.png'))
             text_file = open(text_file_name, 'w') # 書き込みモードで開く
-            #text_file.write(brack_array) # 引数の文字列をファイルに書き込む
-            #text_file.close() # ファイルを閉じる
-            #for j in range (width):
-            #    for i in range (0, height, 8):
-            #        hex_data = array2hex(black_array[i][j], black_array[i+1][j], black_array[i+2][j], black_array[i+3][j], black_array[i+4][j], black_array[i+5][j], black_array[i+6][j], black_array[i+7][j])
-            #        text_file.write(hex(hex_data) + ',' )
-            #    text_file.write('\n')
-            hex_data = array2hex(True,False,True,False,False,False,False,False)
-            text_file.write(hex(hex_data) + ',' )
+            rem = height % 8    #8で割った時の余り
+            for j in range (width):
+                for i in range (0, height, 8):
+                    if int(height/8) * 8 == i :    #縦の解像度が8で割り切れない時に参照エラーを防ぐための処理 クソコードなので、修正予定
+                        if rem == 0:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = black_array[i+3][j]
+                            bit4 = black_array[i+4][j]
+                            bit5 = black_array[i+5][j]
+                            bit6 = black_array[i+6][j]
+                            bit7 = black_array[i+7][j]
+                        elif rem == 1:
+                            bit0 = black_array[i][j]
+                            bit1 = True
+                            bit2 = True
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 2:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = True
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 3:
+                            print(str(i))
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 4:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = black_array[i+3][j]
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 5:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = black_array[i+3][j]
+                            bit4 = black_array[i+4][j]
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 6:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = black_array[i+3][j]
+                            bit4 = black_array[i+4][j]
+                            bit5 = black_array[i+5][j]
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 7:
+                            bit0 = black_array[i][j]
+                            bit1 = black_array[i+1][j]
+                            bit2 = black_array[i+2][j]
+                            bit3 = black_array[i+3][j]
+                            bit4 = black_array[i+4][j]
+                            bit5 = black_array[i+5][j]
+                            bit6 = black_array[i+6][j]
+                            bit7 = True
+                    else :
+                        bit0 = black_array[i][j]
+                        bit1 = black_array[i+1][j]
+                        bit2 = black_array[i+2][j]
+                        bit3 = black_array[i+3][j]
+                        bit4 = black_array[i+4][j]
+                        bit5 = black_array[i+5][j]
+                        bit6 = black_array[i+6][j]
+                        bit7 = black_array[i+7][j]
+
+                    hex_data = array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7)
+                    hex_txt = hex(hex_data)
+                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',' ) #0埋めの為のヘンテコ処理
+                text_file.write('\n')
+            red_array = np.array(Image.open('red.png'))
+            for j in range (width):
+                for i in range (0, height, 8):
+                    if int(height/8) * 8 == i :    #縦の解像度が8で割り切れない時に参照エラーを防ぐための処理 クソコードなので、修正予定
+                        if rem == 0:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = red_array[i+3][j]
+                            bit4 = red_array[i+4][j]
+                            bit5 = red_array[i+5][j]
+                            bit6 = red_array[i+6][j]
+                            bit7 = red_array[i+7][j]
+                        elif rem == 1:
+                            bit0 = red_array[i][j]
+                            bit1 = True
+                            bit2 = True
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 2:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = True
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 3:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = True
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 4:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = red_array[i+3][j]
+                            bit4 = True
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 5:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = red_array[i+3][j]
+                            bit4 = red_array[i+4][j]
+                            bit5 = True
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 6:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = red_array[i+3][j]
+                            bit4 = red_array[i+4][j]
+                            bit5 = red_array[i+5][j]
+                            bit6 = True
+                            bit7 = True
+                        elif rem == 7:
+                            bit0 = red_array[i][j]
+                            bit1 = red_array[i+1][j]
+                            bit2 = red_array[i+2][j]
+                            bit3 = red_array[i+3][j]
+                            bit4 = red_array[i+4][j]
+                            bit5 = red_array[i+5][j]
+                            bit6 = red_array[i+6][j]
+                            bit7 = True
+                    else :
+                        bit0 = red_array[i][j]
+                        bit1 = red_array[i+1][j]
+                        bit2 = red_array[i+2][j]
+                        bit3 = red_array[i+3][j]
+                        bit4 = red_array[i+4][j]
+                        bit5 = red_array[i+5][j]
+                        bit6 = red_array[i+6][j]
+                        bit7 = red_array[i+7][j]
+
+                    hex_data = array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7)
+                    hex_txt = hex(hex_data)
+                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',' ) #0埋めの為のヘンテコ処理
+                text_file.write('\n')
             text_file.close() # ファイルを閉じる
-        #グラフエリアマウスドラッグ時処理
-        if event == 'graph_orig': 
+        if event == 'graph_orig':         #グラフエリアマウスドラッグ時処理
             x, y = values['graph_orig']
             graph_orig.Widget.config(cursor='fleur')
             if not dragging:
