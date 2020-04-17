@@ -160,7 +160,7 @@ def main():
             #黒の画像にマスクをかけて、赤を塗る
             img_black = Image.open('black.png')
             img_black = img_black.convert('RGB')
-            fill_color = (255,0,0)
+            fill_color = (180,0,0)
             img_black.paste(Image.new('RGB', (width ,height), fill_color), mask = mask)
             img_black.save('black_and_red.png')
             #読み込み画像描画
