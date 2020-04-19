@@ -1,6 +1,6 @@
 import PySimpleGUI as sg
 import numpy as np
-from PIL import Image, ImageGrab, ImageChops
+from PIL import Image, ImageGrab, ImageChops, ImageOps
 
 MAX_WIDTH = 255
 MAX_HEIGHT = 255
@@ -10,21 +10,21 @@ def array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7):
     pol = False
     hex_data = 0x00
     if bit0 == pol:
-        hex_data = hex_data | 0x01
-    if bit1 == pol:
-        hex_data = hex_data | 0x02
-    if bit2 == pol:
-        hex_data = hex_data | 0x04
-    if bit3 == pol:
-        hex_data = hex_data | 0x08
-    if bit4 == pol:
-        hex_data = hex_data | 0x10
-    if bit5 == pol:
-        hex_data = hex_data | 0x20
-    if bit6 == pol:
-        hex_data = hex_data | 0x40
-    if bit7 == pol:
         hex_data = hex_data | 0x80
+    if bit1 == pol:
+        hex_data = hex_data | 0x40
+    if bit2 == pol:
+        hex_data = hex_data | 0x20
+    if bit3 == pol:
+        hex_data = hex_data | 0x10
+    if bit4 == pol:
+        hex_data = hex_data | 0x08
+    if bit5 == pol:
+        hex_data = hex_data | 0x04
+    if bit6 == pol:
+        hex_data = hex_data | 0x02
+    if bit7 == pol:
+        hex_data = hex_data | 0x01
     return hex_data
 
 def save_element_as_file(element, filename, height, width):
@@ -169,7 +169,9 @@ def main():
             graph_mix.DrawImage(filename = './black_and_red.png', location = (0,0))
         elif event == 'Save' :      #hexファイル保存処理
             text_file_name = 'hex_datas.txt'    #'0xXX'の形式でテキストとして保存。C言語とかで楽に使える。
-            black_array = np.array(Image.open('black.png'))
+            img = Image.open('black.png')
+            img = ImageOps.mirror(img)
+            black_array = np.array(img)
             text_file = open(text_file_name, 'w') # 書き込みモードで開く
             rem = height % 8    #8で割った時の余り
             for j in range (width):
@@ -262,7 +264,9 @@ def main():
                     hex_txt = hex(hex_data)
                     text_file.write('0x'+ hex_txt[2:].zfill(2) + ',' ) #0埋めの為のヘンテコ処理
                 text_file.write('\n')
-            red_array = np.array(Image.open('red.png'))
+            img = Image.open('red.png')
+            img = ImageOps.mirror(img)
+            red_array = np.array(img)
             for j in range (width):
                 for i in range (0, height, 8):
                     if int(height/8) * 8 == i :    #縦の解像度が8で割り切れない時に参照エラーを防ぐための処理 クソコードなので、修正予定
