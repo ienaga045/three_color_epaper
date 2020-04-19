@@ -1,4 +1,4 @@
-# 電子ペーパー用データ作成ソフト（開発中）
+# 電子ペーパー用データ作成ソフト
 PNG画像を読み込んで、拡大・縮小・回転・移動の編集、3値（黒・赤）のバイナリデータを生成するGUIアプリ
 ![UI](https://raw.githubusercontent.com/ienaga045/three_color_epaper/master/UI_animation.gif)
 
