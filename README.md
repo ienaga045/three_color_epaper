@@ -1,12 +1,14 @@
 # 電子ペーパー用データ作成ソフト（開発中）
-PNG画像を読み込んで、拡大・縮小・回転・移動の編集、3値（黒・赤）のバイナリデータを生成するGUIアプリ。（予定）
-
+PNG画像を読み込んで、拡大・縮小・回転・移動の編集、3値（黒・赤）のバイナリデータを生成するGUIアプリ
 ![UI](https://raw.githubusercontent.com/ienaga045/three_color_epaper/master/UI_animation.gif)
 
+- 出力ファイル例
 ![HEX](https://raw.githubusercontent.com/ienaga045/three_color_epaper/master/hex_text.png)
 
+- 電子ペーパー表示例
 
-###### 仕様
+
+## 仕様
 - PNGフォーマットに対応
 - 最大解像度は255x255
 - データ方向は縦方向スキャン
