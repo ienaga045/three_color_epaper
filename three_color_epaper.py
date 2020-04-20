@@ -44,7 +44,7 @@ def main():
     layout = [
         [sg.Text('電子ペーパーの画像サイズ', size=(21,1)), sg.Input('212', size=(3,1),key = 'epaper_width'), sg.Text('x', size=(1,1)),
          sg.Input('104', size=(3,1), key = 'epaper_height'), sg.Button('Set'), sg.T('(最大255)')],
-        [sg.InputText('PNGファイルを選択', enable_events=True,), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNG ファイル', '*.png'),)), sg.Button('OK'), sg.Button('Resize'), sg.Button('Rotation')],
+        [sg.InputText('PNG,JPEGファイルを選択', enable_events=True,), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNGファイル', '*.png'),('JPEGファイル', '*.jpg'),)), sg.Button('OK'), sg.Button('Resize'), sg.Button('Rotation')],
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_orig', change_submits=True, drag_submits=True,  # mouse click events 
          background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_mix', background_color='white')],
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_black', background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_red', background_color='white')],
@@ -102,6 +102,10 @@ def main():
                 fill_space_v()
         elif event == 'OK': #ファイルオープン処理
             file_name = values['Open_file']
+            if file_name.endswith('.jpg'):  #JPEGファイルの場合pngファイルに変換して実行
+                img = Image.open(file_name)
+                file_name = 'convert_from_jpg.png'
+                img.save(file_name)
             graph_orig.erase() #一旦初期化
             graph_orig.DrawImage(filename = file_name, location = (0,0))   #読み込み画像描画
             if height != 255: #最大値以外はグレーアウト部を生成
