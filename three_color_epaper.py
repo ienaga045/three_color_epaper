@@ -1,9 +1,11 @@
-import PySimpleGUI as sg
+#!/usr/bin/env python
 import numpy as np
-from PIL import Image, ImageGrab, ImageChops, ImageOps
+import PySimpleGUI as sg
+from PIL import Image, ImageChops, ImageGrab, ImageOps
 
 MAX_WIDTH = 255
 MAX_HEIGHT = 255
+
 
 #bit列をhexに変換する関数
 def array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7):
@@ -27,6 +29,7 @@ def array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7):
         hex_data = hex_data | 0x01
     return hex_data
 
+
 def save_element_as_file(element, filename, height, width):
     """
     Saves any element as an image file.  Element needs to have an underlyiong Widget available (almost if not all of them do)
@@ -42,15 +45,23 @@ def main():
     sg.theme('Default1')
     #ウィンドウレイアウト定義
     layout = [
-        [sg.Text('電子ペーパーの画像サイズ', size=(21,1)), sg.Input('212', size=(3,1),key = 'epaper_width'), sg.Text('x', size=(1,1)),
-         sg.Input('104', size=(3,1), key = 'epaper_height'), sg.Button('Set'), sg.T('(最大255)')],
-        [sg.InputText('PNG,JPEGファイルを選択', enable_events=True,), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNGファイル', '*.png'),('JPEGファイル', '*.jpg'),)), sg.Button('OK'), sg.Button('Resize'), sg.Button('Rotation')],
-        [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_orig', change_submits=True, drag_submits=True,  # mouse click events 
-         background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_mix', background_color='white')],
+        [
+            sg.Text('電子ペーパーの画像サイズ', size=(21,1)), sg.Input('212', size=(3,1),key = 'epaper_width'), sg.Text('x', size=(1,1)),
+            sg.Input('104', size=(3,1), key = 'epaper_height'), sg.Button('Set'), sg.T('(最大255)'),
+        ],
+        [sg.InputText('PNG,JPEGファイルを選択', enable_events=True), sg.FilesBrowse('Select', key='Open_file', file_types=(('PNGファイル', '*.png'),('JPEGファイル', '*.jpg'))), sg.Button('OK'), sg.Button('Resize'), sg.Button('Rotation')],
+        [
+            sg.Graph(
+                (MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_orig', change_submits=True, drag_submits=True,  # mouse click events
+                background_color='white',
+            ), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_mix', background_color='white'),
+        ],
         [sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_black', background_color='white'), sg.Graph((MAX_WIDTH, MAX_HEIGHT),(0,MAX_HEIGHT),(MAX_WIDTH, 0), key= 'graph_red', background_color='white')],
-        [sg.Text('B/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'black_thresh_slider'),
-         sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider')],[sg.Button('Calc'),sg.Button('Save')],
-        [sg.T(' '*120),sg.Exit()]
+        [
+            sg.Text('B/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'black_thresh_slider'),
+            sg.Text('R/W閾値', size=(7,1)), sg.Slider((0, 255), 128, 1, orientation = 'h', size = (20,15), key = 'red_thresh_slider'),
+        ],[sg.Button('Calc'),sg.Button('Save')],
+        [sg.T(' '*120),sg.Exit()],
     ]
     window = sg.Window('3色電子ペーパー（Black/Red/White）の画像データ生成用のﾊﾟｲﾁｮﾝｱﾌﾟﾘ', layout, location=(400, 200),finalize = True)
 
@@ -93,10 +104,10 @@ def main():
             window['epaper_height'].update(str(height))
             window['epaper_width'].update(str(width))
             graph_orig.erase() #一旦初期化
-            graph_mix.erase() 
-            graph_black.erase() 
+            graph_mix.erase()
+            graph_black.erase()
             graph_red.erase()   #最大値以外はグレーアウト部を生成
-            if height != 255: 
+            if height != 255:
                 fill_space_h()
             if width != 255:
                 fill_space_v()
@@ -157,7 +168,7 @@ def main():
             img_green_and_blue = ImageChops.logical_and(img_green_bin, img_blue_bin)
             img_red_bin = ImageChops.logical_xor(img_red_bin, img_green_and_blue)    #赤の抽出
             mask = img_red_bin
-            img_red_bin = ImageChops.invert(img_red_bin)    
+            img_red_bin = ImageChops.invert(img_red_bin)
             img_black_bin.save('black.png')
             img_red_bin.save('red.png')
 
@@ -266,7 +277,7 @@ def main():
 
                     hex_data = array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7)
                     hex_txt = hex(hex_data)
-                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',' ) #0埋めの為のヘンテコ処理
+                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',') #0埋めの為のヘンテコ処理
                 text_file.write('\n')
             img = Image.open('red.png')
             img = ImageOps.mirror(img)
@@ -358,7 +369,7 @@ def main():
 
                     hex_data = array2hex(bit0, bit1, bit2, bit3, bit4, bit5, bit6, bit7)
                     hex_txt = hex(hex_data)
-                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',' ) #0埋めの為のヘンテコ処理
+                    text_file.write('0x'+ hex_txt[2:].zfill(2) + ',') #0埋めの為のヘンテコ処理
                 text_file.write('\n')
             text_file.close() # ファイルを閉じる
         if event == 'graph_orig':         #グラフエリアマウスドラッグ時処理
@@ -377,7 +388,7 @@ def main():
                 end_point = (x, y)
             delta_x, delta_y = x - lastxy[0], y - lastxy[1]
             lastxy = x,y
-            if None not in (start_point, end_point):    
+            if None not in (start_point, end_point):
                 for fig in drag_figures:
                     graph_orig.move_figure(fig, delta_x, delta_y)
                     graph_orig.update()
@@ -385,6 +396,8 @@ def main():
             start_point, end_point = None, None
             dragging = False
     #終了時処理
-    window.close()  
+    window.close()
 
-main()
+
+if __name__ == '__main__':
+    main()
