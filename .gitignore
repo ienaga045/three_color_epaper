@@ -1,2 +1,6 @@
 *.png
 *.txt
+
+# python
+.venv
+*.pyc
